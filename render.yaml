@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: quantum-qp-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 5000
+
+  - type: static
+    name: quantum-qp-frontend
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://quantum-qp-backend.onrender.com
