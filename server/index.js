@@ -69,17 +69,18 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React build directory
   app.use(express.static(path.join(__dirname, '../client/build')));
 
-  // Handle client-side routing - this should be the last route
-  app.get('*', (req, res, next) => {
-    // Skip if the request is for an API route
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
+  // Handle client-side routing
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+
+  // Handle all other routes for client-side routing
+  app.get('/:path', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
 }
 
-// 404 Route - only for API routes
+// 404 Route for API endpoints
 app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'API route not found' });
 });
