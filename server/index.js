@@ -154,18 +154,44 @@ app.use('/api/users', userRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, '../client/build');
+  const indexPath = path.join(buildPath, 'index.html');
+
+  // Log build directory information
+  console.log('📁 Build directory info:', {
+    buildPath,
+    indexPath,
+    exists: {
+      buildDir: require('fs').existsSync(buildPath),
+      indexFile: require('fs').existsSync(indexPath)
+    }
+  });
+
   // Serve static files from the React build directory
-  app.use(express.static(path.join(__dirname, '../client/build')));
+  app.use(express.static(buildPath, {
+    index: false, // Disable default index serving
+    fallthrough: false // Don't fall through to next middleware
+  }));
 
   // Handle root route
   app.get('/', (req, res) => {
     try {
-      res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+      console.log('📥 Serving index.html for root route');
+      if (!require('fs').existsSync(indexPath)) {
+        throw new Error('index.html not found in build directory');
+      }
+      res.sendFile(indexPath);
     } catch (error) {
-      console.error('❌ Error serving index.html:', error);
+      console.error('❌ Error serving index.html:', {
+        error: error.message,
+        stack: error.stack,
+        buildPath,
+        indexPath
+      });
       res.status(500).json({
         success: false,
         message: 'Error serving frontend application',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
         timestamp: new Date().toISOString()
       });
     }
@@ -176,6 +202,7 @@ if (process.env.NODE_ENV === 'production') {
     try {
       // Don't serve index.html for API routes
       if (req.path.startsWith('/api/')) {
+        console.log('❌ API route not found:', req.path);
         return res.status(404).json({
           success: false,
           message: 'API route not found',
@@ -184,15 +211,23 @@ if (process.env.NODE_ENV === 'production') {
         });
       }
       
-      res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+      console.log('📥 Serving index.html for route:', req.path);
+      if (!require('fs').existsSync(indexPath)) {
+        throw new Error('index.html not found in build directory');
+      }
+      res.sendFile(indexPath);
     } catch (error) {
       console.error('❌ Error serving static file:', {
         path: req.path,
-        error: error.message
+        error: error.message,
+        stack: error.stack,
+        buildPath,
+        indexPath
       });
       res.status(500).json({
         success: false,
         message: 'Error serving frontend application',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
         path: req.path,
         timestamp: new Date().toISOString()
       });
