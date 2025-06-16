@@ -84,7 +84,7 @@ const OtpVerification = () => {
     }
 
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/verify-otp', { 
+      const { data } = await axios.post('https://qqpdirecr-backend.onrender.com/api/auth/verify-otp', { 
         email, 
         otp: otpString 
       });

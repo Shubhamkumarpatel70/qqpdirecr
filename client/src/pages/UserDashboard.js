@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiCalendar, FiArchive, FiList, FiLogOut, FiHeart } from 'react-icons/fi';
 import { io } from 'socket.io-client';
+import api from '../utils/axios';
 
 const UserDashboard = () => {
   const [latestPosts, setLatestPosts] = useState([]);
@@ -12,19 +13,50 @@ const UserDashboard = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('latest');
   const [socket, setSocket] = useState(null);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com');
     setSocket(newSocket);
 
-    return () => newSocket.disconnect();
+    newSocket.on('activeUsers', (count) => {
+      setActiveUsers(count);
+    });
+
+    newSocket.on('postUpdated', (updatedPost) => {
+      setAllPosts(prevPosts => 
+        prevPosts.map(post => 
+          post._id === updatedPost._id ? updatedPost : post
+        )
+      );
+      setLatestPosts(prevPosts => 
+        prevPosts.map(post => 
+          post._id === updatedPost._id ? updatedPost : post
+        )
+      );
+      setOlderPosts(prevPosts => 
+        prevPosts.map(post => 
+          post._id === updatedPost._id ? updatedPost : post
+        )
+      );
+    });
+
+    newSocket.on('postDeleted', ({ id }) => {
+      setAllPosts(prevPosts => prevPosts.filter(post => post._id !== id));
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
   }, []);
 
   const fetchPosts = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/posts');
+      const { data } = await api.get('/api/posts');
       const today = new Date();
       const latest = [];
       const older = [];
@@ -53,33 +85,7 @@ const UserDashboard = () => {
 
   useEffect(() => {
     fetchPosts();
-
-    if (socket) {
-      socket.on('postUpdated', (updatedPost) => {
-        setAllPosts(prevPosts => 
-          prevPosts.map(post => 
-            post._id === updatedPost._id ? updatedPost : post
-          )
-        );
-        setLatestPosts(prevPosts => 
-          prevPosts.map(post => 
-            post._id === updatedPost._id ? updatedPost : post
-          )
-        );
-        setOlderPosts(prevPosts => 
-          prevPosts.map(post => 
-            post._id === updatedPost._id ? updatedPost : post
-          )
-        );
-      });
-    }
-
-    return () => {
-      if (socket) {
-        socket.off('postUpdated');
-      }
-    };
-  }, [socket]);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -236,7 +242,7 @@ const PostCard = ({ post, socket }) => {
       setLikeCount(newLikeCount);
       setIsLiked(!isLiked);
 
-      await axios.put(`http://localhost:5000/api/posts/${post._id}/like`, {
+      await api.put(`/api/posts/${post._id}/like`, {
         like: !isLiked
       });
 
@@ -270,7 +276,7 @@ const PostCard = ({ post, socket }) => {
         {post.file && (
           <div className="mt-4">
             <a
-              href={`http://localhost:5000/uploads/${post.file}`}
+              href={`${process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com'}/uploads/${post.file}`}
               download
               className="text-blue-500 hover:underline"
             >

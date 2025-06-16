@@ -16,36 +16,43 @@ const AdminDashboard = () => {
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
   const [activeUsers, setActiveUsers] = useState(0); // Define activeUsers state
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem('user')) || {};
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    totalUsers: 0
+  });
+
+  const api = axios.create({
+    baseURL: 'http://localhost:5000',
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  });
 
   const fetchData = async () => {
     try {
-      setLoading(true);
-      const [postsRes, usersRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/posts'),
-        axios.get('http://localhost:5000/api/users')
+      const [postsResponse, usersResponse] = await Promise.all([
+        api.get('/api/posts'),
+        api.get('/api/users')
       ]);
-      setPosts(postsRes.data);
-      setUsers(usersRes.data);
+
+      setStats({
+        totalPosts: postsResponse.data.length,
+        totalUsers: usersResponse.data.length
+      });
+
+      setPosts(postsResponse.data);
+      setUsers(usersResponse.data);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      setError('Failed to fetch dashboard data');
+      console.error('Dashboard data fetch error:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/login');
   };
 
   useEffect(() => {
@@ -65,6 +72,12 @@ const AdminDashboard = () => {
     };
   }, []);
 
+  const logout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -80,9 +93,8 @@ const AdminDashboard = () => {
     formData.append('link', e.target.link.value); // Append link if provided
 
     try {
-      const response = await axios.post('http://localhost:5000/api/posts', formData, {
+      const response = await api.post('/api/posts', formData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -101,7 +113,7 @@ const AdminDashboard = () => {
   const deletePost = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/posts/${id}`);
+        await api.delete(`/api/posts/${id}`);
         fetchData();
       } catch (err) {
         console.error('Error deleting post:', err);
@@ -112,7 +124,7 @@ const AdminDashboard = () => {
   const deleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${id}`);
+        await api.delete(`/api/users/${id}`);
         fetchData();
       } catch (err) {
         console.error('Error deleting user:', err);
@@ -130,11 +142,11 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 <div className="flex justify-between p-4 bg-blue-50 rounded">
                   <span>Total Posts</span>
-                  <span className="font-bold">{posts.length}</span>
+                  <span className="font-bold">{stats.totalPosts}</span>
                 </div>
                 <div className="flex justify-between p-4 bg-green-50 rounded">
                   <span>Total Users</span>
-                  <span className="font-bold">{users.length}</span>
+                  <span className="font-bold">{stats.totalUsers}</span>
                 </div>
                 <div className="flex justify-between p-4 bg-yellow-50 rounded">
                   <span>Active Users</span>
