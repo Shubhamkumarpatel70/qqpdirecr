@@ -69,13 +69,13 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React build directory
   app.use(express.static(path.join(__dirname, '../client/build')));
 
-  // Handle client-side routing
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  });
-
-  // Handle all other routes for client-side routing
-  app.get('/:path', (req, res) => {
+  // Handle all other routes
+  app.use((req, res, next) => {
+    // Skip if the request is for an API route
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    // Serve index.html for all other routes
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
 }
