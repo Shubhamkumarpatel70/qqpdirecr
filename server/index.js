@@ -45,32 +45,27 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://quantum-qp-frontend-4ogo.onrender.com']
-    : ['http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
-}));
 
-// Add headers middleware
+// CORS middleware
 app.use((req, res, next) => {
-  const origin = process.env.NODE_ENV === 'production'
-    ? 'https://quantum-qp-frontend-4ogo.onrender.com'
-    : 'http://localhost:3000';
+  const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? ['https://quantum-qp-frontend-4ogo.onrender.com']
+    : ['http://localhost:3000'];
   
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
+  
   next();
 });
 
