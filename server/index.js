@@ -69,6 +69,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Static file serving
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -104,13 +109,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => {
+// MongoDB Connection with retry logic
+const connectWithRetry = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ MongoDB connected');
+  } catch (err) {
     console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
+    console.log('🔄 Retrying connection in 5 seconds...');
+    setTimeout(connectWithRetry, 5000);
+  }
+};
+
+connectWithRetry();
 
 // Socket.io logic
 let activeUsers = 0;
@@ -129,4 +140,10 @@ io.on('connection', (socket) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 MongoDB URI: ${process.env.MONGO_URI ? 'Configured' : 'Not configured'}`);
+  console.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? 'Configured' : 'Not configured'}`);
+  console.log(`📧 Email Config: ${process.env.EMAIL_USER ? 'Configured' : 'Not configured'}`);
+});
