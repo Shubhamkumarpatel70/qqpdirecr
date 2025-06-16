@@ -36,7 +36,7 @@ const io = new Server(httpServer, {
   cors: {
     origin: process.env.NODE_ENV === 'production'
       ? [process.env.FRONTEND_URL]
-      : 'http://localhost:3000',
+      : 'https://quantum-qp-frontend.onrender.com/',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -47,7 +47,7 @@ app.use(express.json());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? [process.env.FRONTEND_URL]
-    : 'http://localhost:3000',
+    : 'https://quantum-qp-frontend.onrender.com/',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

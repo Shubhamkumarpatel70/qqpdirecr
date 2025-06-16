@@ -27,7 +27,7 @@ const AdminDashboard = () => {
   });
 
   const api = axios.create({
-    baseURL: 'http://localhost:5000',
+    baseURL: 'https://qqpdirecr-backend.onrender.com',
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
