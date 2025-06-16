@@ -66,17 +66,22 @@ app.use('/api/users', userRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the React build directory
   app.use(express.static(path.join(__dirname, '../client/build')));
 
-  // Catch-all route for client-side routing
-  app.get('/*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client', 'build', 'index.html'));
+  // Handle client-side routing - this should be the last route
+  app.get('*', (req, res, next) => {
+    // Skip if the request is for an API route
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
 }
 
-// 404 Route
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+// 404 Route - only for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ message: 'API route not found' });
 });
 
 // Global Error Handler
