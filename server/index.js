@@ -96,6 +96,8 @@ app.get('/health', (req, res) => {
   try {
     console.log('🔍 Health check requested');
     
+    const formatMemory = (bytes) => `${Math.round(bytes / 1024 / 1024)}MB`;
+    
     const healthData = {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -104,19 +106,29 @@ app.get('/health', (req, res) => {
         status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         readyState: mongoose.connection.readyState,
         host: mongoose.connection.host,
-        name: mongoose.connection.name
+        name: mongoose.connection.name,
+        collections: Object.keys(mongoose.connection.collections).length
       },
       memory: {
-        heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
-        heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB',
-        rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB'
+        rss: formatMemory(process.memoryUsage().rss),
+        heapTotal: formatMemory(process.memoryUsage().heapTotal),
+        heapUsed: formatMemory(process.memoryUsage().heapUsed),
+        external: formatMemory(process.memoryUsage().external),
+        arrayBuffers: formatMemory(process.memoryUsage().arrayBuffers)
       },
-      uptime: Math.round(process.uptime()) + ' seconds',
+      uptime: `${Math.round(process.uptime())} seconds`,
       config: {
         nodeEnv: process.env.NODE_ENV || 'development',
         hasMongoUri: !!process.env.MONGO_URI,
         hasJwtSecret: !!process.env.JWT_SECRET,
-        hasEmailConfig: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
+        hasEmailConfig: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS),
+        corsOrigins: process.env.NODE_ENV === 'production' 
+          ? ['https://quantum-qp-frontend-4ogo.onrender.com']
+          : ['http://localhost:3000']
+      },
+      version: {
+        node: process.version,
+        mongoose: mongoose.version
       }
     };
 
