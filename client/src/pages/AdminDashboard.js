@@ -58,10 +58,11 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchData();
 
-    // Connect to the Socket.io server
-    const socket = io('http://localhost:5000/'); // Replace with your backend URL if hosted elsewhere
+    // Initialize socket connection
+    const socket = io(process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production'
+      ? 'https://qqpdirecr-backend.onrender.com'
+      : 'http://localhost:5000'));
 
-    // Listen for active users count
     socket.on('activeUsers', (count) => {
       setActiveUsers(count);
     });
