@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { existsSync } from 'fs';
 
 import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
@@ -162,8 +163,8 @@ if (process.env.NODE_ENV === 'production') {
     buildPath,
     indexPath,
     exists: {
-      buildDir: require('fs').existsSync(buildPath),
-      indexFile: require('fs').existsSync(indexPath)
+      buildDir: existsSync(buildPath),
+      indexFile: existsSync(indexPath)
     }
   });
 
@@ -177,7 +178,7 @@ if (process.env.NODE_ENV === 'production') {
   app.get('/', (req, res) => {
     try {
       console.log('📥 Serving index.html for root route');
-      if (!require('fs').existsSync(indexPath)) {
+      if (!existsSync(indexPath)) {
         throw new Error('index.html not found in build directory');
       }
       res.sendFile(indexPath);
@@ -212,7 +213,7 @@ if (process.env.NODE_ENV === 'production') {
       }
       
       console.log('📥 Serving index.html for route:', req.path);
-      if (!require('fs').existsSync(indexPath)) {
+      if (!existsSync(indexPath)) {
         throw new Error('index.html not found in build directory');
       }
       res.sendFile(indexPath);
