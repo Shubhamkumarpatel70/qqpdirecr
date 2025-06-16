@@ -47,6 +47,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     'https://quantum-qp-frontend-4ogo.onrender.com',
+    'https://qqpdirecr-frontend.onrender.com',
     'http://localhost:3000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

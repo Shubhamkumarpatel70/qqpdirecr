@@ -106,7 +106,7 @@ const OtpVerification = () => {
     setIsSubmitting(true);
 
     // Call the API to resend OTP
-    const { data } = await axios.post('http://localhost:5000/api/auth/resend-otp', { email });
+    const { data } = await axios.post('/api/auth/resend-otp', { email });
 
     setSuccess(data.message || 'A new OTP has been sent to your email');
     setCanResend(false);
