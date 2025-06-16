@@ -35,10 +35,11 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL, 'https://quantum-qp-frontend-4ogo.onrender.com']
-      : ['http://localhost:3000', 'https://quantum-qp-frontend-4ogo.onrender.com'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      ? ['https://quantum-qp-frontend-4ogo.onrender.com']
+      : ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   },
 });
 
@@ -46,14 +47,32 @@ const io = new Server(httpServer, {
 app.use(express.json());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? [process.env.FRONTEND_URL, 'https://quantum-qp-frontend-4ogo.onrender.com']
-    : ['http://localhost:3000', 'https://quantum-qp-frontend-4ogo.onrender.com'],
+    ? ['https://quantum-qp-frontend-4ogo.onrender.com']
+    : ['http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
+
+// Add headers middleware
+app.use((req, res, next) => {
+  const origin = process.env.NODE_ENV === 'production'
+    ? 'https://quantum-qp-frontend-4ogo.onrender.com'
+    : 'http://localhost:3000';
+  
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
 
 // Static file serving
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
