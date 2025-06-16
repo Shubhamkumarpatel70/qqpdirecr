@@ -94,18 +94,41 @@ app.use((req, res, next) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
   try {
+    console.log('🔍 Health check requested');
+    
     const healthData = {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-      memory: process.memoryUsage(),
-      uptime: process.uptime()
+      mongodb: {
+        status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name
+      },
+      memory: {
+        heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
+        heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB',
+        rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB'
+      },
+      uptime: Math.round(process.uptime()) + ' seconds',
+      config: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        hasMongoUri: !!process.env.MONGO_URI,
+        hasJwtSecret: !!process.env.JWT_SECRET,
+        hasEmailConfig: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
+      }
     };
+
+    console.log('📊 Health check data:', healthData);
     res.status(200).json(healthData);
   } catch (error) {
-    console.error('Health check error:', error);
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('❌ Health check error:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
