@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../utils/axios';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -25,8 +25,8 @@ const Signup = () => {
     }
 
     try {
-      // Register the user
-      const { data } = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/signup`, {
+      // Register the user using configured axios instance
+      const { data } = await api.post('/api/auth/signup', {
         name: name.trim(),
         email: email.trim(),
         password,

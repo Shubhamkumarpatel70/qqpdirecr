@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
 
 const OtpVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -84,7 +84,7 @@ const OtpVerification = () => {
     }
 
     try {
-      const { data } = await axios.post('https://qqpdirecr-backend.onrender.com/api/auth/verify-otp', { 
+      const { data } = await api.post('/api/auth/verify-otp', { 
         email, 
         otp: otpString 
       });
@@ -97,44 +97,44 @@ const OtpVerification = () => {
     }
   };
 
- const handleResendOtp = async () => {
-  if (!canResend) return;
+  const handleResendOtp = async () => {
+    if (!canResend) return;
 
-  try {
-    setError('');
-    setSuccess('');
-    setIsSubmitting(true);
+    try {
+      setError('');
+      setSuccess('');
+      setIsSubmitting(true);
 
-    // Call the API to resend OTP
-    const { data } = await axios.post('/api/auth/resend-otp', { email });
+      // Call the API to resend OTP using configured axios instance
+      const { data } = await api.post('/api/auth/resend-otp', { email });
 
-    setSuccess(data.message || 'A new OTP has been sent to your email');
-    setCanResend(false);
-    setTimeLeft(120); // Reset timer to 2 minutes
+      setSuccess(data.message || 'A new OTP has been sent to your email');
+      setCanResend(false);
+      setTimeLeft(120); // Reset timer to 2 minutes
 
-    // Restart the countdown
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          clearInterval(timer);
-          setCanResend(true);
-          return 0;
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
-  } catch (err) {
-    setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      // Restart the countdown
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            setCanResend(true);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-};
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -217,24 +217,24 @@ const formatTime = (seconds) => {
           </form>
 
           <div className="mt-6 text-center">
-  <p className="text-sm text-gray-600">
-    Didn't receive a code?{' '}
-    {canResend ? (
-      <button
-        type="button"
-        className="font-medium text-blue-600 hover:text-blue-500"
-        onClick={handleResendOtp}
-        disabled={isSubmitting}
-      >
-        Resend OTP
-      </button>
-    ) : (
-      <span className="text-gray-500">
-        Resend OTP in {formatTime(timeLeft)}
-      </span>
-    )}
-  </p>
-</div>
+            <p className="text-sm text-gray-600">
+              Didn't receive a code?{' '}
+              {canResend ? (
+                <button
+                  type="button"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                  onClick={handleResendOtp}
+                  disabled={isSubmitting}
+                >
+                  Resend OTP
+                </button>
+              ) : (
+                <span className="text-gray-500">
+                  Resend OTP in {formatTime(timeLeft)}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
       </div>
     </div>
