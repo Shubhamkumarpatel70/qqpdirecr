@@ -19,15 +19,33 @@ const UserDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io(process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com');
-    setSocket(newSocket);
+    const fetchPosts = async () => {
+      try {
+        const response = await api.get('/api/posts');
+        setAllPosts(response.data);
+      } catch (err) {
+        setError('Failed to fetch posts');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    newSocket.on('activeUsers', (count) => {
+    fetchPosts();
+
+    // Socket connection
+    const socket = io(process.env.REACT_APP_API_URL || 
+      (process.env.NODE_ENV === 'production' 
+        ? 'https://qqpdirecr-backend.onrender.com'
+        : 'http://localhost:5000'), {
+      withCredentials: true
+    });
+
+    socket.on('activeUsers', (count) => {
       setActiveUsers(count);
     });
 
-    newSocket.on('postUpdated', (updatedPost) => {
+    socket.on('postUpdated', (updatedPost) => {
       setAllPosts(prevPosts => 
         prevPosts.map(post => 
           post._id === updatedPost._id ? updatedPost : post
@@ -45,46 +63,15 @@ const UserDashboard = () => {
       );
     });
 
-    newSocket.on('postDeleted', ({ id }) => {
+    socket.on('postDeleted', ({ id }) => {
       setAllPosts(prevPosts => prevPosts.filter(post => post._id !== id));
     });
 
+    setSocket(socket);
+
     return () => {
-      newSocket.disconnect();
+      socket.disconnect();
     };
-  }, []);
-
-  const fetchPosts = async () => {
-    try {
-      const { data } = await api.get('/api/posts');
-      const today = new Date();
-      const latest = [];
-      const older = [];
-
-      data.forEach(post => {
-        const postDate = new Date(post.createdAt);
-        const diffTime = Math.abs(today - postDate);
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) {
-          latest.push(post);
-        } else if (diffDays >= 5) {
-          older.push(post);
-        }
-      });
-
-      setLatestPosts(latest);
-      setOlderPosts(older);
-      setAllPosts(data);
-      setLoading(false);
-    } catch (err) {
-      console.error('Failed to fetch posts:', err);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
   }, []);
 
   const handleLogout = () => {

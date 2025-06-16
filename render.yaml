@@ -24,4 +24,4 @@ services:
     staticPublishPath: client/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://quantum-qp-backend.onrender.com
+        value: https://qqpdirecr-backend.onrender.com/

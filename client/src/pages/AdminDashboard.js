@@ -50,7 +50,12 @@ const AdminDashboard = () => {
     fetchData();
 
     // Socket connection
-    const socket = io(process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com');
+    const socket = io(process.env.REACT_APP_API_URL || 
+      (process.env.NODE_ENV === 'production' 
+        ? 'https://qqpdirecr-backend.onrender.com'
+        : 'http://localhost:5000'), {
+      withCredentials: true
+    });
     
     socket.on('activeUsers', (count) => {
       setActiveUsers(count);
