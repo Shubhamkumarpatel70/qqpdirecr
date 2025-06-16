@@ -2,7 +2,9 @@ services:
   - type: web
     name: quantum-qp-backend
     env: node
-    buildCommand: cd server && npm install
+    buildCommand: |
+      cd client && npm install && npm run build
+      cd ../server && npm install
     startCommand: cd server && npm start
     envVars:
       - key: MONGODB_URI
@@ -11,6 +13,8 @@ services:
         sync: false
       - key: PORT
         value: 5000
+      - key: NODE_ENV
+        value: production
 
   - type: web
     name: quantum-qp-frontend
