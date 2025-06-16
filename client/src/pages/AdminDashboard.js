@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import api from '../utils/axios';
 import {
   FiMenu, FiX, FiHome, FiPlusSquare, FiUsers,
   FiFileText, FiLogOut
@@ -15,8 +15,8 @@ const AdminDashboard = () => {
   const [courseCategory, setCourseCategory] = useState('btech');
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
-  const [activeUsers, setActiveUsers] = useState(0); // Define activeUsers state
-  const [error, setError] = useState(null);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,48 +26,36 @@ const AdminDashboard = () => {
     totalUsers: 0
   });
 
-  const api = axios.create({
-    baseURL: 'https://qqpdirecr-backend.onrender.com',
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`
-    }
-  });
-
-  const fetchData = async () => {
-    try {
-      const [postsResponse, usersResponse] = await Promise.all([
-        api.get('/api/posts'),
-        api.get('/api/users')
-      ]);
-
-      setStats({
-        totalPosts: postsResponse.data.length,
-        totalUsers: usersResponse.data.length
-      });
-
-      setPosts(postsResponse.data);
-      setUsers(usersResponse.data);
-    } catch (err) {
-      setError('Failed to fetch dashboard data');
-      console.error('Dashboard data fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [postsRes, usersRes] = await Promise.all([
+          api.get('/api/posts'),
+          api.get('/api/users')
+        ]);
+        setPosts(postsRes.data);
+        setUsers(usersRes.data);
+        setStats({
+          totalPosts: postsRes.data.length,
+          totalUsers: usersRes.data.length
+        });
+      } catch (err) {
+        setError('Failed to fetch data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
 
-    // Initialize socket connection
-    const socket = io(process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production'
-      ? 'https://qqpdirecr-backend.onrender.com'
-      : 'http://localhost:5000'));
-
+    // Socket connection
+    const socket = io(process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com');
+    
     socket.on('activeUsers', (count) => {
       setActiveUsers(count);
     });
 
-    // Cleanup on component unmount
     return () => {
       socket.disconnect();
     };
@@ -103,7 +91,7 @@ const AdminDashboard = () => {
       setSuccess('Post created successfully!');
       setPostTitle('');
       setPostContent('');
-      fetchData(); // Refresh posts
+      setPosts([...posts, response.data]);
       setActiveTab('view-posts');
     } catch (err) {
       console.error('Error creating post:', err);
@@ -111,22 +99,43 @@ const AdminDashboard = () => {
     }
   };
 
-  const deletePost = async (id) => {
+  const handlePostUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', file.name);
+
+    try {
+      const response = await api.post('/api/posts', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setPosts([...posts, response.data]);
+    } catch (err) {
+      setError('Failed to upload post');
+      console.error(err);
+    }
+  };
+
+  const handleDeletePost = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
         await api.delete(`/api/posts/${id}`);
-        fetchData();
+        setPosts(posts.filter(post => post._id !== id));
       } catch (err) {
         console.error('Error deleting post:', err);
       }
     }
   };
 
-  const deleteUser = async (id) => {
+  const handleDeleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await api.delete(`/api/users/${id}`);
-        fetchData();
+        setUsers(users.filter(user => user._id !== id));
       } catch (err) {
         console.error('Error deleting user:', err);
       }
@@ -217,6 +226,7 @@ const AdminDashboard = () => {
                 <input
                   type="file"
                   name="file"
+                  onChange={handlePostUpload}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -268,7 +278,7 @@ const AdminDashboard = () => {
                           <h4 className="mt-2 font-semibold text-lg">{post.title}</h4>
                         </div>
                         <button
-                          onClick={() => deletePost(post._id)}
+                          onClick={() => handleDeletePost(post._id)}
                           className="text-red-500 hover:text-red-700"
                         >
                           Delete
@@ -307,7 +317,7 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <button
-                          onClick={() => deleteUser(user._id)}
+                          onClick={() => handleDeleteUser(user._id)}
                           className="text-red-500 hover:text-red-700"
                         >
                           Delete

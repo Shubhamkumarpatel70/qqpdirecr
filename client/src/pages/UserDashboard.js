@@ -259,6 +259,11 @@ const PostCard = ({ post, socket }) => {
     }
   };
 
+  const handleDownload = (post) => {
+    const downloadUrl = `${process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com'}/uploads/${post.file}`;
+    window.open(downloadUrl, '_blank');
+  };
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow duration-300">
       <div className="p-6">
