@@ -5,6 +5,7 @@ services:
     buildCommand: |
       cd client && npm install && npm run build
       cd ../server && npm install
+      cp -r ../client/build ./public
     startCommand: cd server && npm start
     envVars:
       - key: MONGODB_URI

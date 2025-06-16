@@ -155,7 +155,7 @@ app.use('/api/users', userRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../client/build');
+  const buildPath = path.join(__dirname, 'public');
   const indexPath = path.join(buildPath, 'index.html');
 
   // Log build directory information
@@ -165,7 +165,9 @@ if (process.env.NODE_ENV === 'production') {
     exists: {
       buildDir: existsSync(buildPath),
       indexFile: existsSync(indexPath)
-    }
+    },
+    currentDir: __dirname,
+    files: existsSync(buildPath) ? require('fs').readdirSync(buildPath) : []
   });
 
   // Serve static files from the React build directory
@@ -179,6 +181,7 @@ if (process.env.NODE_ENV === 'production') {
     try {
       console.log('📥 Serving index.html for root route');
       if (!existsSync(indexPath)) {
+        console.error('❌ index.html not found at:', indexPath);
         throw new Error('index.html not found in build directory');
       }
       res.sendFile(indexPath);
@@ -187,7 +190,8 @@ if (process.env.NODE_ENV === 'production') {
         error: error.message,
         stack: error.stack,
         buildPath,
-        indexPath
+        indexPath,
+        currentDir: __dirname
       });
       res.status(500).json({
         success: false,
@@ -214,6 +218,7 @@ if (process.env.NODE_ENV === 'production') {
       
       console.log('📥 Serving index.html for route:', req.path);
       if (!existsSync(indexPath)) {
+        console.error('❌ index.html not found at:', indexPath);
         throw new Error('index.html not found in build directory');
       }
       res.sendFile(indexPath);
@@ -223,7 +228,8 @@ if (process.env.NODE_ENV === 'production') {
         error: error.message,
         stack: error.stack,
         buildPath,
-        indexPath
+        indexPath,
+        currentDir: __dirname
       });
       res.status(500).json({
         success: false,
