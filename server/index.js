@@ -157,21 +157,58 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React build directory
   app.use(express.static(path.join(__dirname, '../client/build')));
 
-  // Handle all other routes
-  app.use((req, res, next) => {
-    // Skip if the request is for an API route
-    if (req.path.startsWith('/api/')) {
-      return next();
+  // Handle root route
+  app.get('/', (req, res) => {
+    try {
+      res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+    } catch (error) {
+      console.error('❌ Error serving index.html:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error serving frontend application',
+        timestamp: new Date().toISOString()
+      });
     }
-    // Serve index.html for all other routes
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+
+  // Handle all other routes
+  app.get('*', (req, res) => {
+    try {
+      // Don't serve index.html for API routes
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+          success: false,
+          message: 'API route not found',
+          path: req.path,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+    } catch (error) {
+      console.error('❌ Error serving static file:', {
+        path: req.path,
+        error: error.message
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Error serving frontend application',
+        path: req.path,
+        timestamp: new Date().toISOString()
+      });
+    }
   });
 }
 
 // 404 Route for API endpoints
 app.use('/api/*', (req, res) => {
   console.log(`❌ 404 Not Found: ${req.method} ${req.url}`);
-  res.status(404).json({ message: 'API route not found' });
+  res.status(404).json({
+    success: false,
+    message: 'API route not found',
+    path: req.path,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Global Error Handler
