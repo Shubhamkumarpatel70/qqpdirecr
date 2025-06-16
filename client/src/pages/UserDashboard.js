@@ -133,55 +133,53 @@ const UserDashboard = () => {
           <div className="p-4 border-b border-gray-200">
             <h1 className="text-xl font-bold text-gray-800">User Dashboard</h1>
           </div>
-          <nav className="p-4">
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection('latest');
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'latest' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                >
-                  <FiCalendar className="mr-3" />
-                  <span>Latest Posts</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection('older');
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'older' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                >
-                  <FiArchive className="mr-3" />
-                  <span>Older Posts</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection('all');
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'all' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                >
-                  <FiList className="mr-3" />
-                  <span>All Posts</span>
-                </button>
-              </li>
-              <li className="border-t border-gray-200 pt-2 mt-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
-                >
-                  <FiLogOut className="mr-3" />
-                  <span>Logout</span>
-                </button>
-              </li>
-            </ul>
-          </nav>
+          <ul className="space-y-2">
+            <li>
+              <button
+                onClick={() => {
+                  setActiveSection('latest');
+                  setMenuOpen(false);
+                }}
+                className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'latest' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                <FiCalendar className="mr-3" />
+                <span>Latest Posts</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => {
+                  setActiveSection('older');
+                  setMenuOpen(false);
+                }}
+                className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'older' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                <FiArchive className="mr-3" />
+                <span>Older Posts</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => {
+                  setActiveSection('all');
+                  setMenuOpen(false);
+                }}
+                className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'all' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                <FiList className="mr-3" />
+                <span>All Posts</span>
+              </button>
+            </li>
+            <li className="border-t border-gray-200 pt-2 mt-2">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
+              >
+                <FiLogOut className="mr-3" />
+                <span>Logout</span>
+              </button>
+            </li>
+          </ul>
         </div>
 
         {/* Main content */}
