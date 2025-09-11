@@ -34,10 +34,12 @@ const UserDashboard = () => {
     fetchPosts();
 
     // Socket connection
-    const socket = io(process.env.REACT_APP_API_URL || 
-      (process.env.NODE_ENV === 'production' 
-        ? 'https://qqpdirecr-backend.onrender.com'
-        : 'http://localhost:5000'), {
+    const API_URL = process.env.REACT_APP_API_URL || 
+      (process.env.NODE_ENV === 'production'
+        ? 'https://qqpdirecr-backend.onrender.com' 
+        : 'http://localhost:5000');
+
+    const socket = io(API_URL, {
       withCredentials: true
     });
 
@@ -73,6 +75,22 @@ const UserDashboard = () => {
       socket.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (allPosts.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const fiveDaysAgo = new Date();
+      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+      const latest = allPosts.filter(post => new Date(post.createdAt) >= today);
+      const older = allPosts.filter(post => new Date(post.createdAt) < fiveDaysAgo);
+
+      setLatestPosts(latest);
+      setOlderPosts(older);
+    }
+  }, [allPosts]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -247,14 +265,15 @@ const PostCard = ({ post, socket }) => {
   };
 
   const handleDownload = (post) => {
-    const downloadUrl = `${process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com'}/uploads/${post.file}`;
+    const API_URL = process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com';
+    const downloadUrl = `${API_URL}/uploads/${post.file}`;
     window.open(downloadUrl, '_blank');
   };
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow duration-300">
       <div className="p-6">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-2 gap-2">
           <h3 className="font-semibold text-lg text-gray-800">{post.title}</h3>
           {post.courseCategory && (
             <span className="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
@@ -267,13 +286,13 @@ const PostCard = ({ post, socket }) => {
         {/* File Download Button */}
         {post.file && (
           <div className="mt-4">
-            <a
-              href={`${process.env.REACT_APP_API_URL || 'https://qqpdirecr-backend.onrender.com'}/uploads/${post.file}`}
-              download
+            <button
+              type="button"
+              onClick={() => handleDownload(post)}
               className="text-blue-500 hover:underline"
             >
               Download File
-            </a>
+            </button>
           </div>
         )}
 

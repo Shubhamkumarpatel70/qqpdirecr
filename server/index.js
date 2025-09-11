@@ -66,31 +66,19 @@ const io = new Server(httpServer, {
   },
 });
 
-// Middleware
-app.use(express.json());
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://quantum-qp-frontend-4ogo.onrender.com'
+    : 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// CORS middleware
-app.use((req, res, next) => {
-  const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? ['https://quantum-qp-frontend-4ogo.onrender.com']
-    : ['http://localhost:3000'];
-  
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  
-  next();
-});
+// Middleware
+app.use(cors(corsOptions)); // Use the cors middleware
+app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
