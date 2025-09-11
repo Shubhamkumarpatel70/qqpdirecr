@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiCalendar, FiArchive, FiList, FiLogOut, FiHeart } from 'react-icons/fi';
 import { io } from 'socket.io-client';
@@ -18,19 +17,20 @@ const UserDashboard = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await api.get('/api/posts');
-        setAllPosts(response.data);
-      } catch (err) {
-        setError('Failed to fetch posts');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/posts');
+      setAllPosts(response.data);
+    } catch (err) {
+      setError('Failed to fetch posts');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
     fetchPosts();
 
     // Socket connection
@@ -74,7 +74,7 @@ const UserDashboard = () => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [fetchPosts]);
 
   useEffect(() => {
     if (allPosts.length > 0) {
