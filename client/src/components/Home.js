@@ -1,12 +1,16 @@
 // client/src/components/Home.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaArrowRight } from 'react-icons/fa';
+import Header from './Header';
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Header />
+      <div className="flex flex-col justify-center items-center py-12">
       <div className="text-center max-w-2xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
           Welcome to Our Platform!
@@ -55,9 +59,21 @@ const Home = () => {
             <div className="text-indigo-600 text-2xl mb-2">❤️</div>
             <h3 className="font-medium mb-1">Easy</h3>
             <p className="text-gray-600 text-sm">Simple and intuitive to use</p>
-          </div>
         </div>
       </div>
+
+      <div className="mt-12 text-center">
+        <div className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow inline-block cursor-pointer" onClick={() => window.open('/qp', '_blank')}>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">My Previous Question Paper</h2>
+          <button
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 inline-flex items-center gap-2"
+          >
+            Continue <FaArrowRight />
+          </button>
+        </div>
+      </div>
+      </div>
+    </div>
     </div>
   );
 };

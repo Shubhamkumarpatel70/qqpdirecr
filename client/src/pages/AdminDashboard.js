@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 import api from '../utils/axios';
 import {
   FiMenu, FiX, FiHome, FiPlusSquare, FiUsers,
-  FiFileText, FiLogOut
+  FiFileText, FiLogOut, FiSearch, FiBook
 } from 'react-icons/fi';
 
 const AdminDashboard = () => {
@@ -26,15 +26,37 @@ const AdminDashboard = () => {
     totalUsers: 0
   });
 
+  // New state for most searched terms and PYQ tab
+  const [mostSearched, setMostSearched] = useState([]);
+  const [pyqQuestions, setPyqQuestions] = useState([]);
+
+  // New states for dynamic form data for Add PYQ
+  const [courses, setCourses] = useState([]);
+  const [years, setYears] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [postsRes, usersRes] = await Promise.all([
+        const [postsRes, usersRes, searchRes, pyqRes, coursesRes, yearsRes, semestersRes, subjectsRes] = await Promise.all([
           api.get('/api/posts'),
-          api.get('/api/users')
+          api.get('/api/users'),
+          api.get('/api/search/most-searched'),
+          api.get('/api/pyqs'),
+          api.get('/api/courses'),
+          api.get('/api/years'),
+          api.get('/api/semesters'),
+          api.get('/api/subjects')
         ]);
         setPosts(postsRes.data);
         setUsers(usersRes.data);
+        setMostSearched(searchRes.data);
+        setPyqQuestions(pyqRes.data);
+        setCourses(coursesRes.data);
+        setYears(yearsRes.data);
+        setSemesters(semestersRes.data);
+        setSubjects(subjectsRes.data);
         setStats({
           totalPosts: postsRes.data.length,
           totalUsers: usersRes.data.length
@@ -335,6 +357,105 @@ const AdminDashboard = () => {
             </div>
           </div>
         );
+      case 'most-searched':
+        return (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-xl font-semibold mb-4">Most Searched Terms</h3>
+            <div className="space-y-4">
+              {mostSearched.length > 0 ? (
+                mostSearched.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded">
+                    <span className="font-medium">{item.query}</span>
+                    <span className="text-gray-500">{item.count} searches</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No search data available</p>
+              )}
+            </div>
+          </div>
+        );
+      case 'add-pyq':
+        return (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-xl font-semibold mb-4">Add PYQ</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData();
+              formData.append('title', e.target.title.value);
+              formData.append('course', e.target.course.value);
+              formData.append('year', e.target.year.value);
+              formData.append('semester', e.target.semester.value);
+              formData.append('subject', e.target.subject.value);
+              if (e.target.file.files[0]) {
+                formData.append('file', e.target.file.files[0]);
+              }
+
+              try {
+                await api.post('/api/pyqs', formData, {
+                  headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                setSuccess('PYQ added successfully!');
+                // Refresh PYQs
+                const pyqRes = await api.get('/api/pyqs');
+                setPyqQuestions(pyqRes.data);
+              } catch (err) {
+                setError('Failed to add PYQ');
+                console.error(err);
+              }
+            }} className="space-y-4">
+              {error && <div className="p-3 bg-red-100 text-red-700 rounded">{error}</div>}
+              {success && <div className="p-3 bg-green-100 text-green-700 rounded">{success}</div>}
+              <div>
+                <label className="block mb-1">Title</label>
+                <input type="text" name="title" className="w-full p-2 border rounded" required />
+              </div>
+              <div>
+                <label className="block mb-1">Course</label>
+                <select name="course" className="w-full p-2 border rounded" required>
+                  <option value="">Select Course</option>
+                  {courses.map(course => (
+                    <option key={course._id} value={course._id}>{course.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">Year</label>
+                <select name="year" className="w-full p-2 border rounded" required>
+                  <option value="">Select Year</option>
+                  {years.map(year => (
+                    <option key={year._id} value={year._id}>{year.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">Semester</label>
+                <select name="semester" className="w-full p-2 border rounded" required>
+                  <option value="">Select Semester</option>
+                  {semesters.map(semester => (
+                    <option key={semester._id} value={semester._id}>{semester.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">Subject</label>
+                <select name="subject" className="w-full p-2 border rounded" required>
+                  <option value="">Select Subject</option>
+                  {subjects.map(subject => (
+                    <option key={subject._id} value={subject._id}>{subject.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">Upload File</label>
+                <input type="file" name="file" className="w-full p-2 border rounded" />
+              </div>
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Add PYQ
+              </button>
+            </form>
+          </div>
+        );
       default:
         return null;
     }
@@ -380,6 +501,18 @@ const AdminDashboard = () => {
               <button onClick={() => { setActiveTab('manage-users'); setMenuOpen(false); }} className={`w-full flex items-center p-2 rounded-lg ${activeTab === 'manage-users' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}>
                 <FiUsers className="mr-3" />
                 <span>Manage Users</span>
+              </button>
+            </li>
+            <li>
+              <button onClick={() => { setActiveTab('most-searched'); setMenuOpen(false); }} className={`w-full flex items-center p-2 rounded-lg ${activeTab === 'most-searched' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}>
+                <FiSearch className="mr-3" />
+                <span>Most Searched</span>
+              </button>
+            </li>
+            <li>
+              <button onClick={() => { setActiveTab('add-pyq'); setMenuOpen(false); }} className={`w-full flex items-center p-2 rounded-lg ${activeTab === 'add-pyq' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}>
+                <FiBook className="mr-3" />
+                <span>Add PYQ</span>
               </button>
             </li>
             <li>

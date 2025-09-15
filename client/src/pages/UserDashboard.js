@@ -1,21 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiCalendar, FiArchive, FiList, FiLogOut, FiHeart } from 'react-icons/fi';
+import { FiMenu, FiX, FiCalendar, FiArchive, FiList, FiLogOut, FiHeart, FiMessageSquare } from 'react-icons/fi';
 import { io } from 'socket.io-client';
 import api from '../utils/axios';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../redux/slices/authSlice';
 
 const UserDashboard = () => {
   const [latestPosts, setLatestPosts] = useState([]);
   const [olderPosts, setOlderPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('latest');
   const [socket, setSocket] = useState(null);
   const [activeUsers, setActiveUsers] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const navigate = useNavigate();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -97,6 +101,24 @@ const UserDashboard = () => {
     navigate('/login');
   };
 
+  const handleFeedbackSubmit = async () => {
+    if (!feedback.trim()) {
+      setError('Feedback cannot be empty');
+      return;
+    }
+    try {
+      // For now, just log feedback. Replace with API call if needed.
+      console.log('User feedback submitted:', feedback);
+      setSuccess('Thank you for your feedback!');
+      setFeedback('');
+      setShowFeedbackModal(false);
+      setError('');
+    } catch (err) {
+      setError('Failed to submit feedback');
+      console.error(err);
+    }
+  };
+
   const renderPosts = () => {
     const postsToRender = 
       activeSection === 'latest' ? latestPosts :
@@ -127,30 +149,24 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile menu button */}
-      <div className="lg:hidden bg-white shadow-sm p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
-        <button 
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-gray-600 hover:text-gray-800 focus:outline-none"
-        >
-          {menuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-        </button>
-      </div>
-
       <div className="flex">
         {/* Sidebar/Navigation */}
-        <div className={`fixed inset-y-0 left-0 z-20 w-64 bg-white shadow-lg transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
-          <div className="p-4 border-b border-gray-200">
+        <div className="hidden lg:block fixed inset-y-0 left-0 z-20 w-64 bg-white shadow-lg">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-800">User Dashboard</h1>
+            <button
+              onClick={() => setShowFeedbackModal(!showFeedbackModal)}
+              className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+              title="Give Feedback"
+            >
+              <FiMessageSquare />
+              <span>Feedback</span>
+            </button>
           </div>
           <ul className="space-y-2">
             <li>
               <button
-                onClick={() => {
-                  setActiveSection('latest');
-                  setMenuOpen(false);
-                }}
+                onClick={() => setActiveSection('latest')}
                 className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'latest' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
               >
                 <FiCalendar className="mr-3" />
@@ -159,10 +175,7 @@ const UserDashboard = () => {
             </li>
             <li>
               <button
-                onClick={() => {
-                  setActiveSection('older');
-                  setMenuOpen(false);
-                }}
+                onClick={() => setActiveSection('older')}
                 className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'older' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
               >
                 <FiArchive className="mr-3" />
@@ -171,10 +184,7 @@ const UserDashboard = () => {
             </li>
             <li>
               <button
-                onClick={() => {
-                  setActiveSection('all');
-                  setMenuOpen(false);
-                }}
+                onClick={() => setActiveSection('all')}
                 className={`w-full flex items-center p-2 rounded-lg ${activeSection === 'all' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
               >
                 <FiList className="mr-3" />
@@ -217,9 +227,87 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Bottom menu for small screens */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 lg:hidden flex justify-around py-2">
+        <button
+          onClick={() => setActiveSection('latest')}
+          className={`flex flex-col items-center text-sm ${activeSection === 'latest' ? 'text-blue-600' : 'text-gray-600'}`}
+          title="Latest Posts"
+        >
+          <FiCalendar size={20} />
+          <span>Latest</span>
+        </button>
+        <button
+          onClick={() => setActiveSection('older')}
+          className={`flex flex-col items-center text-sm ${activeSection === 'older' ? 'text-blue-600' : 'text-gray-600'}`}
+          title="Older Posts"
+        >
+          <FiArchive size={20} />
+          <span>Older</span>
+        </button>
+        <button
+          onClick={() => setActiveSection('all')}
+          className={`flex flex-col items-center text-sm ${activeSection === 'all' ? 'text-blue-600' : 'text-gray-600'}`}
+          title="All Posts"
+        >
+          <FiList size={20} />
+          <span>All</span>
+        </button>
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center text-sm text-gray-600"
+          title="Logout"
+        >
+          <FiLogOut size={20} />
+          <span>Logout</span>
+        </button>
+        <button
+          onClick={() => setShowFeedbackModal(!showFeedbackModal)}
+          className={`flex flex-col items-center text-sm ${showFeedbackModal ? 'text-blue-600' : 'text-gray-600'}`}
+          title="Feedback"
+        >
+          <FiMessageSquare size={20} />
+          <span>Feedback</span>
+        </button>
+      </div>
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96 max-w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Feedback</h2>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Enter your feedback here..."
+              className="w-full p-2 border border-gray-300 rounded-md resize-none"
+              rows="4"
+            />
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            {success && <p className="text-green-500 text-sm mt-2">{success}</p>}
+            <div className="flex justify-end mt-4 space-x-2">
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFeedbackSubmit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+export default UserDashboard;
 
 const PostCard = ({ post, socket }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -327,4 +415,3 @@ const PostCard = ({ post, socket }) => {
   );
 };
 
-export default UserDashboard;
