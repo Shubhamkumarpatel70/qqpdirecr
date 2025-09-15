@@ -15,6 +15,31 @@ const pyqSchema = new mongoose.Schema({
     required: true,
     enum: ['btech', 'bca', 'mca', 'mba', 'other']
   },
+  college: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  program: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  semester: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  year: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  batch: {
+    type: String,
+    required: true,
+    trim: true
+  },
   file: {
     type: String // Path to uploaded file
   },
