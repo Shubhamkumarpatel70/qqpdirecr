@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import SearchBox from './SearchBox';
 import { useSelector } from 'react-redux';
-import { selectIsAuthenticated } from '../redux/slices/authSlice';
+import { selectIsAuthenticated, selectUserRole } from '../redux/slices/authSlice';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const userRole = useSelector(selectUserRole);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -46,7 +47,11 @@ const Navbar = () => {
               PYQ
             </Link>
             <SearchBox />
-            {!isAuthenticated && (
+            {isAuthenticated ? (
+              <Link to={userRole === 'admin' ? '/admin-dashboard' : '/user-dashboard'} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-300">
+                Dashboard
+              </Link>
+            ) : (
               <>
                 <Link to="/login" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-300">
                   Login
@@ -91,7 +96,11 @@ const Navbar = () => {
             <div className="px-3 py-2">
               <SearchBox />
             </div>
-            {!isAuthenticated && (
+            {isAuthenticated ? (
+              <Link to={userRole === 'admin' ? '/admin-dashboard' : '/user-dashboard'} className={mobileLinkClass(userRole === 'admin' ? '/admin-dashboard' : '/user-dashboard')} onClick={toggleMenu}>
+                Dashboard
+              </Link>
+            ) : (
               <>
                 <Link to="/login" className={mobileLinkClass('/login')} onClick={toggleMenu}>
                   Login
