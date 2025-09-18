@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../utils/axios';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -14,12 +15,16 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder: implement form submission
-    console.log('Form submitted:', formData);
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', message: '' });
+    try {
+      await api.post('/api/contact', formData);
+      alert('Thank you for your message! We will get back to you soon.');
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      alert('Failed to send message. Please try again.');
+    }
   };
 
   return (

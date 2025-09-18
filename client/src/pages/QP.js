@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from '../utils/axios';
 
 const QP = () => {
   const [colleges, setColleges] = useState([]);
@@ -17,12 +18,18 @@ const QP = () => {
 
   // For demo, using static data. Replace with API calls as needed.
   useEffect(() => {
-    setColleges(['College A', 'College B', 'College C']);
+    // Fetch colleges from backend
+    axios.get('/api/academic/colleges')
+      .then(res => setColleges(res.data))
+      .catch(err => console.error('Error fetching colleges:', err));
   }, []);
 
   useEffect(() => {
     if (selectedCollege) {
-      setPrograms(['Program 1', 'Program 2']);
+      // Fetch programs for selected college
+      axios.get('/api/academic/programs')
+        .then(res => setPrograms(res.data))
+        .catch(err => console.error('Error fetching programs:', err));
       setSelectedProgram('');
       setBranches([]);
       setSelectedBranch('');
@@ -37,7 +44,10 @@ const QP = () => {
 
   useEffect(() => {
     if (selectedProgram) {
-      setBranches(['Branch X', 'Branch Y']);
+      // Fetch branches for selected program
+      axios.get('/api/academic/branches')
+        .then(res => setBranches(res.data))
+        .catch(err => console.error('Error fetching branches:', err));
       setSelectedBranch('');
       setBatches([]);
       setSelectedBatch('');
@@ -50,7 +60,10 @@ const QP = () => {
 
   useEffect(() => {
     if (selectedBranch) {
-      setBatches(['Batch 2020', 'Batch 2021']);
+      // Fetch batches for selected branch
+      axios.get('/api/academic/batches')
+        .then(res => setBatches(res.data))
+        .catch(err => console.error('Error fetching batches:', err));
       setSelectedBatch('');
       setYears([]);
       setSelectedYear('');
@@ -61,7 +74,10 @@ const QP = () => {
 
   useEffect(() => {
     if (selectedBatch) {
-      setYears(['Year 1', 'Year 2', 'Year 3']);
+      // Fetch years for selected batch
+      axios.get('/api/academic/years')
+        .then(res => setYears(res.data))
+        .catch(err => console.error('Error fetching years:', err));
       setSelectedYear('');
       setSubjects([]);
       setSelectedSubject('');
@@ -70,7 +86,10 @@ const QP = () => {
 
   useEffect(() => {
     if (selectedYear) {
-      setSubjects(['Subject A', 'Subject B', 'Subject C']);
+      // Fetch subjects for selected year
+      axios.get('/api/academic/subjects')
+        .then(res => setSubjects(res.data))
+        .catch(err => console.error('Error fetching subjects:', err));
       setSelectedSubject('');
     }
   }, [selectedYear]);

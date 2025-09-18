@@ -25,15 +25,25 @@ const pyqSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true
+  },
   semester: {
-    type: String,
-    required: true,
-    trim: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Semester',
+    required: true
   },
   year: {
-    type: String,
-    required: true,
-    trim: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Year',
+    required: true
+  },
+  subject: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subject',
+    required: true
   },
   batch: {
     type: String,
@@ -45,6 +55,11 @@ const pyqSchema = new mongoose.Schema({
   },
   link: {
     type: String
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'coming soon', 'approved'],
+    default: 'approved'
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

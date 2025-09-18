@@ -13,6 +13,9 @@ import postRoutes from './routes/postRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import pyqRoutes from './routes/pyqRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import feedbackRoutes from './routes/feedback.js';
+import academicRoutes from './routes/academicRoutes.js';
 
 // Load env variables
 dotenv.config();
@@ -144,6 +147,9 @@ app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/pyqs', pyqRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/academic', academicRoutes);
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {

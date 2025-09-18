@@ -19,6 +19,16 @@ const postSchema = new mongoose.Schema({
     },
     required: [true, 'Course category is required']
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'coming soon', 'approved'],
+    default: 'pending'
+  },
    file: { type: String, default: null }, // File name
   link: { type: String, default: null },
   likes: {
